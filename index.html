@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PainSignal — AI Market Intelligence for Founders</title>
+<meta name="description" content="AI-powered pain point intelligence. Find profitable business opportunities by analyzing thousands of real complaints from Reddit, HN, and reviews." />
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg-2: #12121a;
+    --accent: #a78bfa;
+    --accent-2: #38bdf8;
+    --accent-3: #f472b6;
+    --text: #f4f4f5;
+    --text-dim: #a1a1aa;
+    --border: rgba(255,255,255,0.08);
+  }
+  * { -webkit-font-smoothing: antialiased; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* Animated background gradient blobs */
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.4;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .blob-1 { width: 600px; height: 600px; background: #a78bfa; top: -200px; left: -200px; animation: float 20s ease-in-out infinite; }
+  .blob-2 { width: 500px; height: 500px; background: #38bdf8; top: 200px; right: -200px; animation: float 25s ease-in-out infinite reverse; }
+  .blob-3 { width: 400px; height: 400px; background: #f472b6; bottom: -100px; left: 30%; animation: float 30s ease-in-out infinite; opacity: 0.25; }
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(50px, 80px); }
+  }
+
+  /* Glass cards */
+  .glass {
+    background: rgba(255,255,255,0.025);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+  }
+  .glass:hover { background: rgba(255,255,255,0.04); border-color: rgba(167,139,250,0.3); }
+  .glass-strong {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(30px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 24px;
+  }
+
+  /* Gradient text */
+  .grad-text {
+    background: linear-gradient(135deg, #a78bfa 0%, #38bdf8 50%, #f472b6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .grad-text-2 {
+    background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+    box-shadow: 0 4px 30px rgba(167,139,250,0.3);
+    transition: all 0.3s ease;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 40px rgba(167,139,250,0.5);
+  }
+  .btn-ghost {
+    border: 1px solid rgba(255,255,255,0.15);
+    transition: all 0.3s ease;
+  }
+  .btn-ghost:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.3);
+  }
+
+  /* Score bar */
+  .score-bar {
+    height: 6px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .score-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ef4444 0%, #f59e0b 30%, #10b981 60%, #38bdf8 100%);
+    border-radius: 999px;
+  }
+
+  /* Live pulse */
+  .pulse-dot {
+    width: 8px; height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(16,185,129,0.6); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 8px rgba(16,185,129,0); }
+  }
+
+  /* Fade-in scroll animations */
+  .fade-up { opacity: 0; transform: translateY(30px); transition: all 0.8s ease; }
+  .fade-up.visible { opacity: 1; transform: translateY(0); }
+
+  /* Grid pattern */
+  .grid-pattern {
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* Tag pills */
+  .tag {
+    background: rgba(167,139,250,0.1);
+    border: 1px solid rgba(167,139,250,0.2);
+    color: #c4b5fd;
+  }
+  .tag-red { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.25); color: #fca5a5; }
+  .tag-green { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.25); color: #6ee7b7; }
+  .tag-blue { background: rgba(56,189,248,0.1); border-color: rgba(56,189,248,0.25); color: #7dd3fc; }
+  .tag-pink { background: rgba(244,114,182,0.1); border-color: rgba(244,114,182,0.25); color: #f9a8d4; }
+
+  /* Marquee */
+  .marquee { display: flex; gap: 4rem; animation: scroll 40s linear infinite; }
+  @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+</style>
+</head>
+<body class="min-h-screen relative">
+
+<!-- Background blobs -->
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<!-- =============== NAV =============== -->
+<nav class="relative z-50 px-6 md:px-12 py-6 flex items-center justify-between">
+  <div class="flex items-center gap-3">
+    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-cyan-400 flex items-center justify-center font-black text-black">P</div>
+    <span class="text-xl font-bold tracking-tight">PainSignal</span>
+    <span class="hidden md:inline-block ml-2 mono text-[10px] px-2 py-1 rounded-md bg-white/5 text-zinc-400">v0.1 beta</span>
+  </div>
+  <div class="hidden md:flex items-center gap-8 text-sm text-zinc-400">
+    <a href="#how" class="hover:text-white transition">How it works</a>
+    <a href="#live" class="hover:text-white transition">Live data</a>
+    <a href="#pricing" class="hover:text-white transition">Pricing</a>
+    <a href="/login.html" class="hover:text-white transition">Log in</a>
+    <a href="/signup.html" class="px-5 py-2 rounded-lg btn-primary text-white font-medium">Start free</a>
+  </div>
+</nav>
+
+<!-- =============== HERO =============== -->
+<section class="relative z-10 px-6 md:px-12 pt-16 md:pt-28 pb-20 max-w-7xl mx-auto">
+  <div class="flex flex-col items-center text-center">
+
+    <!-- Live indicator -->
+    <div class="flex items-center gap-2 px-4 py-2 rounded-full glass mb-8">
+      <div class="pulse-dot"></div>
+      <span class="text-xs mono text-zinc-300">Live · Scanning 197 posts across 9 communities</span>
+    </div>
+
+    <h1 class="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.95] mb-8 max-w-5xl">
+      Stop building<br/>
+      things <span class="grad-text">nobody wants.</span>
+    </h1>
+
+    <p class="text-lg md:text-2xl text-zinc-400 max-w-3xl mb-12 leading-relaxed">
+      AI agents scrape Reddit, Hacker News, and reviews — surfacing the highest-pain, highest-WTP business opportunities <span class="text-white font-medium">before your competitors notice them.</span>
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-4 mb-16">
+      <a href="#cta" class="btn-primary px-8 py-4 rounded-xl font-semibold text-white flex items-center justify-center gap-2">
+        Get this week's report
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+      </a>
+      <a href="#live" class="btn-ghost px-8 py-4 rounded-xl font-semibold text-zinc-200 flex items-center justify-center gap-2">
+        See live findings
+      </a>
+    </div>
+
+    <!-- Stats row -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12 mt-8 w-full max-w-4xl">
+      <div class="text-center">
+        <div class="text-3xl md:text-5xl font-black grad-text-2">197</div>
+        <div class="text-xs md:text-sm text-zinc-500 mt-1">Posts analyzed</div>
+      </div>
+      <div class="text-center">
+        <div class="text-3xl md:text-5xl font-black grad-text-2">86</div>
+        <div class="text-xs md:text-sm text-zinc-500 mt-1">Pain points found</div>
+      </div>
+      <div class="text-center">
+        <div class="text-3xl md:text-5xl font-black grad-text-2">9</div>
+        <div class="text-xs md:text-sm text-zinc-500 mt-1">Communities</div>
+      </div>
+      <div class="text-center">
+        <div class="text-3xl md:text-5xl font-black grad-text-2">8.24</div>
+        <div class="text-xs md:text-sm text-zinc-500 mt-1">Top score / 10</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =============== MARQUEE: PAIN QUOTES =============== -->
+<section class="relative z-10 py-8 border-y border-white/5 overflow-hidden bg-white/[0.015]">
+  <div class="marquee mono text-zinc-500 text-sm whitespace-nowrap">
+    <span>"getting ghosted by basically everyone" — r/smallbusiness</span>
+    <span>·</span>
+    <span>"I know who my user is, I just can't find them" — r/SaaS</span>
+    <span>·</span>
+    <span>"I hate sales!" — r/Entrepreneur</span>
+    <span>·</span>
+    <span>"Massively dropped the ball" — r/ProductManagement</span>
+    <span>·</span>
+    <span>"makes going back nearly impossible" — r/digitalnomad</span>
+    <span>·</span>
+    <span>"weekends don't feel like a break" — r/ProductManagement</span>
+    <span>·</span>
+    <!-- duplicate for seamless loop -->
+    <span>"getting ghosted by basically everyone" — r/smallbusiness</span>
+    <span>·</span>
+    <span>"I know who my user is, I just can't find them" — r/SaaS</span>
+    <span>·</span>
+    <span>"I hate sales!" — r/Entrepreneur</span>
+    <span>·</span>
+    <span>"Massively dropped the ball" — r/ProductManagement</span>
+    <span>·</span>
+    <span>"makes going back nearly impossible" — r/digitalnomad</span>
+  </div>
+</section>
+
+<!-- =============== LIVE PAIN POINTS FEED =============== -->
+<section id="live" class="relative z-10 px-6 md:px-12 py-24 max-w-7xl mx-auto">
+  <div class="text-center mb-16 fade-up">
+    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-6">
+      <div class="pulse-dot"></div>
+      <span class="text-xs mono text-zinc-300">LIVE INTELLIGENCE FEED</span>
+    </div>
+    <h2 class="text-4xl md:text-6xl font-black tracking-tight mb-6">
+      Real pain. <span class="grad-text">Real opportunities.</span>
+    </h2>
+    <p class="text-lg text-zinc-400 max-w-2xl mx-auto">
+      Below are actual findings from our latest scan. Not lorem ipsum. Not fake data.<br/>
+      These are real complaints, ranked by emotional intensity, urgency, and willingness to pay.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <!-- Card 1 -->
+    <div class="glass p-7 fade-up">
+      <div class="flex items-center justify-between mb-4">
+        <span class="tag tag-red px-3 py-1 rounded-full text-xs font-medium">#1 · Top Opportunity</span>
+        <span class="mono text-xs text-zinc-500">r/smallbusiness</span>
+      </div>
+      <h3 class="text-xl font-bold mb-3 leading-snug">Small business owners are experiencing sudden, unexplained slowdowns.</h3>
+      <p class="text-zinc-400 text-sm mb-5 italic">"getting ghosted by basically everyone"</p>
+
+      <div class="space-y-3 mb-5">
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-zinc-500">Opportunity Score</span>
+            <span class="mono text-white font-bold">8.24/10</span>
+          </div>
+          <div class="score-bar"><div class="score-bar-fill" style="width: 82%"></div></div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="tag tag-red px-2 py-1 rounded-md text-xs">Intensity 8/10</span>
+          <span class="tag tag-blue px-2 py-1 rounded-md text-xs">Urgency 9/10</span>
+          <span class="tag tag-green px-2 py-1 rounded-md text-xs">WTP: High 💰</span>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-white/5">
+        <p class="text-xs text-zinc-500 mb-2 mono">PRODUCT OPPORTUNITY</p>
+        <p class="text-sm text-zinc-200">A business analytics tool that identifies early warning signs of slowdowns and provides actionable insights to mitigate them.</p>
+      </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="glass p-7 fade-up">
+      <div class="flex items-center justify-between mb-4">
+        <span class="tag tag-pink px-3 py-1 rounded-full text-xs font-medium">#2 · Niche Untapped</span>
+        <span class="mono text-xs text-zinc-500">r/digitalnomad</span>
+      </div>
+      <h3 class="text-xl font-bold mb-3 leading-snug">Digital nomads can't re-enter the US — no residence, family, or rental history.</h3>
+      <p class="text-zinc-400 text-sm mb-5 italic">"makes going back nearly impossible"</p>
+
+      <div class="space-y-3 mb-5">
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-zinc-500">Opportunity Score</span>
+            <span class="mono text-white font-bold">7.80/10</span>
+          </div>
+          <div class="score-bar"><div class="score-bar-fill" style="width: 78%"></div></div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="tag tag-red px-2 py-1 rounded-md text-xs">Intensity 8/10</span>
+          <span class="tag tag-blue px-2 py-1 rounded-md text-xs">Urgency 9/10</span>
+          <span class="tag tag-green px-2 py-1 rounded-md text-xs">WTP: High 💰</span>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-white/5">
+        <p class="text-xs text-zinc-500 mb-2 mono">PRODUCT OPPORTUNITY</p>
+        <p class="text-sm text-zinc-200">A relocation platform offering affordable housing, social support, and re-entry services for returning nomads.</p>
+      </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="glass p-7 fade-up">
+      <div class="flex items-center justify-between mb-4">
+        <span class="tag px-3 py-1 rounded-full text-xs font-medium">#3 · Sales Gap</span>
+        <span class="mono text-xs text-zinc-500">r/Entrepreneur</span>
+      </div>
+      <h3 class="text-xl font-bold mb-3 leading-snug">Founders have great products but can't crack scalable sales.</h3>
+      <p class="text-zinc-400 text-sm mb-5 italic">"I hate it!"</p>
+
+      <div class="space-y-3 mb-5">
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-zinc-500">Opportunity Score</span>
+            <span class="mono text-white font-bold">7.71/10</span>
+          </div>
+          <div class="score-bar"><div class="score-bar-fill" style="width: 77%"></div></div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="tag tag-red px-2 py-1 rounded-md text-xs">Intensity 8/10</span>
+          <span class="tag tag-blue px-2 py-1 rounded-md text-xs">Urgency 9/10</span>
+          <span class="tag tag-green px-2 py-1 rounded-md text-xs">WTP: High 💰</span>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-white/5">
+        <p class="text-xs text-zinc-500 mb-2 mono">PRODUCT OPPORTUNITY</p>
+        <p class="text-sm text-zinc-200">A platform connecting entrepreneurs with commission-based sales pros or sales outsourcing for SMBs.</p>
+      </div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="glass p-7 fade-up">
+      <div class="flex items-center justify-between mb-4">
+        <span class="tag px-3 py-1 rounded-full text-xs font-medium">#4 · SMB Pain</span>
+        <span class="mono text-xs text-zinc-500">r/passive_income</span>
+      </div>
+      <h3 class="text-xl font-bold mb-3 leading-snug">Small businesses bleeding from basic IT issues — bad wifi, dying laptops.</h3>
+      <p class="text-zinc-400 text-sm mb-5 italic">"nobody else wanted them"</p>
+
+      <div class="space-y-3 mb-5">
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-zinc-500">Opportunity Score</span>
+            <span class="mono text-white font-bold">7.25/10</span>
+          </div>
+          <div class="score-bar"><div class="score-bar-fill" style="width: 72%"></div></div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="tag tag-red px-2 py-1 rounded-md text-xs">Intensity 6/10</span>
+          <span class="tag tag-blue px-2 py-1 rounded-md text-xs">Urgency 8/10</span>
+          <span class="tag tag-pink px-2 py-1 rounded-md text-xs">WTP: Medium</span>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-white/5">
+        <p class="text-xs text-zinc-500 mb-2 mono">PRODUCT OPPORTUNITY</p>
+        <p class="text-sm text-zinc-200">Subscription-based local IT maintenance with monthly checkups and rapid issue resolution.</p>
+      </div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="glass p-7 fade-up">
+      <div class="flex items-center justify-between mb-4">
+        <span class="tag tag-blue px-3 py-1 rounded-full text-xs font-medium">#5 · Trending</span>
+        <span class="mono text-xs text-zinc-500">r/ProductManagement</span>
+      </div>
+      <h3 class="text-xl font-bold mb-3 leading-snug">Coinbase fires 2000 — experimenting with 1-person product teams.</h3>
+      <p class="text-zinc-400 text-sm mb-5 italic">"reduce size by ~14%"</p>
+
+      <div class="space-y-3 mb-5">
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-zinc-500">Opportunity Score</span>
+            <span class="mono text-white font-bold">6.72/10</span>
+          </div>
+          <div class="score-bar"><div class="score-bar-fill" style="width: 67%"></div></div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="tag tag-red px-2 py-1 rounded-md text-xs">Intensity 6/10</span>
+          <span class="tag tag-blue px-2 py-1 rounded-md text-xs">Urgency 8/10</span>
+          <span class="tag tag-pink px-2 py-1 rounded-md text-xs">WTP: Medium</span>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-white/5">
+        <p class="text-xs text-zinc-500 mb-2 mono">PRODUCT OPPORTUNITY</p>
+        <p class="text-sm text-zinc-200">A platform streamlining product management for solo PMs and 1-person product teams.</p>
+      </div>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="glass p-7 fade-up">
+      <div class="flex items-center justify-between mb-4">
+        <span class="tag px-3 py-1 rounded-full text-xs font-medium">#6 · Roadmap Pain</span>
+        <span class="mono text-xs text-zinc-500">r/ProductManagement</span>
+      </div>
+      <h3 class="text-xl font-bold mb-3 leading-snug">PMs missing red flags, watching their roadmaps slip silently.</h3>
+      <p class="text-zinc-400 text-sm mb-5 italic">"Massively dropped the ball"</p>
+
+      <div class="space-y-3 mb-5">
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-zinc-500">Opportunity Score</span>
+            <span class="mono text-white font-bold">6.58/10</span>
+          </div>
+          <div class="score-bar"><div class="score-bar-fill" style="width: 66%"></div></div>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="tag tag-red px-2 py-1 rounded-md text-xs">Intensity 8/10</span>
+          <span class="tag tag-blue px-2 py-1 rounded-md text-xs">Urgency 9/10</span>
+          <span class="tag tag-green px-2 py-1 rounded-md text-xs">WTP: High 💰</span>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-white/5">
+        <p class="text-xs text-zinc-500 mb-2 mono">PRODUCT OPPORTUNITY</p>
+        <p class="text-sm text-zinc-200">Proactive roadmap management tool with early-warning alerts and resource recommendations.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="text-center mt-12 fade-up">
+    <a href="#cta" class="btn-primary inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold">
+      Unlock 80+ more pain points
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- =============== HOW IT WORKS =============== -->
+<section id="how" class="relative z-10 px-6 md:px-12 py-24 max-w-7xl mx-auto">
+  <div class="text-center mb-16 fade-up">
+    <h2 class="text-4xl md:text-6xl font-black tracking-tight mb-6">
+      How the <span class="grad-text">AI agents work.</span>
+    </h2>
+    <p class="text-lg text-zinc-400 max-w-2xl mx-auto">
+      Four autonomous agents working 24/7 to find your next product idea.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+    <div class="glass-strong p-8 fade-up">
+      <div class="mono text-xs text-violet-300 mb-3">STEP 01</div>
+      <div class="w-12 h-12 rounded-xl bg-violet-500/15 flex items-center justify-center mb-5 text-2xl">🕷️</div>
+      <h3 class="text-xl font-bold mb-2">Scraping Agents</h3>
+      <p class="text-sm text-zinc-400 leading-relaxed">Continuously scan Reddit, HN, app reviews, and forums — pulling raw frustration signals.</p>
+    </div>
+
+    <div class="glass-strong p-8 fade-up">
+      <div class="mono text-xs text-cyan-300 mb-3">STEP 02</div>
+      <div class="w-12 h-12 rounded-xl bg-cyan-500/15 flex items-center justify-center mb-5 text-2xl">🧠</div>
+      <h3 class="text-xl font-bold mb-2">NLP Analysis</h3>
+      <p class="text-sm text-zinc-400 leading-relaxed">Llama 3.3 70B extracts pain points, intensity, urgency, and target users from every post.</p>
+    </div>
+
+    <div class="glass-strong p-8 fade-up">
+      <div class="mono text-xs text-pink-300 mb-3">STEP 03</div>
+      <div class="w-12 h-12 rounded-xl bg-pink-500/15 flex items-center justify-center mb-5 text-2xl">📊</div>
+      <h3 class="text-xl font-bold mb-2">Opportunity Scoring</h3>
+      <p class="text-sm text-zinc-400 leading-relaxed">Each pain gets a 0-10 score combining frequency, emotion, urgency, and willingness to pay.</p>
+    </div>
+
+    <div class="glass-strong p-8 fade-up">
+      <div class="mono text-xs text-emerald-300 mb-3">STEP 04</div>
+      <div class="w-12 h-12 rounded-xl bg-emerald-500/15 flex items-center justify-center mb-5 text-2xl">💡</div>
+      <h3 class="text-xl font-bold mb-2">Product Ideas</h3>
+      <p class="text-sm text-zinc-400 leading-relaxed">AI generates concrete product opportunities with monetization angles and gap analysis.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- =============== PRICING =============== -->
+<section id="pricing" class="relative z-10 px-6 md:px-12 py-24 max-w-7xl mx-auto">
+  <div class="text-center mb-16 fade-up">
+    <h2 class="text-4xl md:text-6xl font-black tracking-tight mb-6">
+      Stop guessing. <span class="grad-text">Start shipping.</span>
+    </h2>
+    <p class="text-lg text-zinc-400 max-w-2xl mx-auto">
+      Three plans. Cancel anytime. First report on us.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+
+    <!-- STARTER -->
+    <div class="glass p-8 fade-up flex flex-col">
+      <div class="mb-6">
+        <h3 class="text-2xl font-bold mb-2">Starter</h3>
+        <p class="text-sm text-zinc-400">For curious indie hackers</p>
+      </div>
+      <div class="mb-8">
+        <span class="text-5xl font-black">$29</span>
+        <span class="text-zinc-500">/mo</span>
+      </div>
+      <ul class="space-y-3 text-sm text-zinc-300 mb-8 flex-1">
+        <li class="flex gap-2"><span class="text-violet-400">✓</span> 3 industry categories</li>
+        <li class="flex gap-2"><span class="text-violet-400">✓</span> Weekly digest (top 20 pains)</li>
+        <li class="flex gap-2"><span class="text-violet-400">✓</span> Basic sentiment scores</li>
+        <li class="flex gap-2"><span class="text-violet-400">✓</span> 30-day trend view</li>
+        <li class="flex gap-2 text-zinc-600"><span>—</span> AI product ideas</li>
+        <li class="flex gap-2 text-zinc-600"><span>—</span> API access</li>
+      </ul>
+      <a href="/signup.html?plan=starter" class="btn-ghost w-full text-center py-3 rounded-xl font-semibold">Start with Starter</a>
+    </div>
+
+    <!-- BUILDER (POPULAR) -->
+    <div class="relative glass-strong p-8 fade-up flex flex-col border-2 border-violet-500/40" style="background: linear-gradient(180deg, rgba(167,139,250,0.06), rgba(56,189,248,0.03));">
+      <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-violet-500 to-cyan-400 text-black text-xs font-bold px-4 py-1 rounded-full">MOST POPULAR</div>
+      <div class="mb-6">
+        <h3 class="text-2xl font-bold mb-2 grad-text">Builder</h3>
+        <p class="text-sm text-zinc-400">For serious founders</p>
+      </div>
+      <div class="mb-8">
+        <span class="text-5xl font-black">$99</span>
+        <span class="text-zinc-500">/mo</span>
+      </div>
+      <ul class="space-y-3 text-sm text-zinc-200 mb-8 flex-1">
+        <li class="flex gap-2"><span class="text-violet-400">✓</span> <strong>All industries</strong></li>
+        <li class="flex gap-2"><span class="text-violet-400">✓</span> <strong>Daily updates</strong></li>
+        <li class="flex gap-2"><span class="text-violet-400">✓</span> AI product recommendations</li>
+        <li class="flex gap-2"><span class="text-violet-400">✓</span> Competitor gap analysis</li>
+        <li class="flex gap-2"><span class="text-violet-400">✓</span> 90-day trend history</li>
+        <li class="flex gap-2"><span class="text-violet-400">✓</span> Slack/email spike alerts</li>
+        <li class="flex gap-2"><span class="text-violet-400">✓</span> CSV export</li>
+      </ul>
+      <a href="/signup.html?plan=builder" class="btn-primary w-full text-center py-3 rounded-xl font-semibold text-white">Get Builder access</a>
+    </div>
+
+    <!-- AGENCY -->
+    <div class="glass p-8 fade-up flex flex-col">
+      <div class="mb-6">
+        <h3 class="text-2xl font-bold mb-2">Agency</h3>
+        <p class="text-sm text-zinc-400">For consulting firms & VCs</p>
+      </div>
+      <div class="mb-8">
+        <span class="text-5xl font-black">$299</span>
+        <span class="text-zinc-500">/mo</span>
+      </div>
+      <ul class="space-y-3 text-sm text-zinc-300 mb-8 flex-1">
+        <li class="flex gap-2"><span class="text-violet-400">✓</span> Everything in Builder</li>
+        <li class="flex gap-2"><span class="text-violet-400">✓</span> Custom vertical monitoring</li>
+        <li class="flex gap-2"><span class="text-violet-400">✓</span> White-label PDF reports</li>
+        <li class="flex gap-2"><span class="text-violet-400">✓</span> API access (1k req/mo)</li>
+        <li class="flex gap-2"><span class="text-violet-400">✓</span> Priority support</li>
+        <li class="flex gap-2"><span class="text-violet-400">✓</span> Custom competitor tracking</li>
+      </ul>
+      <a href="/signup.html?plan=agency" class="btn-ghost w-full text-center py-3 rounded-xl font-semibold">Talk to founder</a>
+    </div>
+
+  </div>
+
+  <p class="text-center text-zinc-500 mt-10 text-sm">7-day free trial · No credit card · Cancel anytime</p>
+</section>
+
+<!-- =============== FINAL CTA =============== -->
+<section id="cta" class="relative z-10 px-6 md:px-12 py-24">
+  <div class="max-w-4xl mx-auto glass-strong p-10 md:p-16 text-center fade-up" style="background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(56,189,248,0.05));">
+    <h2 class="text-4xl md:text-6xl font-black tracking-tight mb-6">
+      Get this week's <span class="grad-text">intelligence report.</span>
+    </h2>
+    <p class="text-lg text-zinc-300 mb-10 max-w-2xl mx-auto">
+      Drop your email below. We'll send you the full report — including all 86 pain points, opportunity scores, and product ideas. Free, no signup required.
+    </p>
+
+    <form class="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
+      <input type="email" required placeholder="founder@yourcompany.com" class="flex-1 px-5 py-4 rounded-xl bg-white/5 border border-white/10 focus:border-violet-400/50 focus:outline-none text-white placeholder-zinc-500" />
+      <button type="submit" class="btn-primary px-8 py-4 rounded-xl font-semibold text-white whitespace-nowrap">Send me the report</button>
+    </form>
+
+    <p class="text-xs text-zinc-500 mt-6 mono">No spam. Unsubscribe anytime. Weekly delivery.</p>
+  </div>
+</section>
+
+<!-- =============== FOOTER =============== -->
+<footer class="relative z-10 px-6 md:px-12 py-12 border-t border-white/5">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-cyan-400 flex items-center justify-center font-black text-black text-sm">P</div>
+      <span class="text-sm font-semibold">PainSignal</span>
+      <span class="mono text-xs text-zinc-600">· Built with Reddit + Groq</span>
+    </div>
+    <div class="flex gap-8 text-xs text-zinc-500">
+      <a href="#" class="hover:text-white">Twitter</a>
+      <a href="#" class="hover:text-white">GitHub</a>
+      <a href="#" class="hover:text-white">Privacy</a>
+      <a href="#" class="hover:text-white">Terms</a>
+    </div>
+    <p class="text-xs text-zinc-600 mono">© 2026 PainSignal · v0.1 beta</p>
+  </div>
+</footer>
+
+<script>
+  // Fade-in on scroll
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+  // Smooth scroll
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+
+  // Email capture — wired to FastAPI backend
+  // Auto-detect: localhost in dev, deployed Render URL in production
+  const API = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:8000"
+    : "https://painsignal-api.onrender.com";  // <-- UPDATE THIS after deploying to Render
+  document.querySelector('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const input = e.target.querySelector('input');
+    const button = e.target.querySelector('button');
+    const email = input.value;
+    const originalText = button.textContent;
+
+    button.textContent = "Sending...";
+    button.disabled = true;
+
+    try {
+      const res = await fetch(API + "/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        button.textContent = "✓ Subscribed!";
+        button.style.background = "linear-gradient(135deg, #10b981, #059669)";
+        input.value = "";
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.style.background = "";
+          button.disabled = false;
+        }, 3000);
+      } else {
+        throw new Error(data.detail || "Failed");
+      }
+    } catch (err) {
+      button.textContent = "Error - try again";
+      button.disabled = false;
+      console.error(err);
+    }
+  });
+
+  // Update subscriber count in hero (live!)
+  fetch(API + "/api/subscribers/count")
+    .then(r => r.json())
+    .then(d => {
+      const indicator = document.querySelector('.pulse-dot')?.parentElement?.querySelector('span');
+      if (indicator && d.count > 0) {
+        indicator.textContent = `Live · ${d.count} founders subscribed · 197 posts analyzed`;
+      }
+    })
+    .catch(() => {});
+</script>
+
+</body>
+</html>

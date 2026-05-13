@@ -1,0 +1,29 @@
+# Secrets
+.env
+*.db
+*.sqlite
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+*.egg-info/
+
+# Data files (regenerated)
+raw_pain_points.csv
+analyzed_pain_points.csv
+pain_point_report_*.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Plans
+*.md.local

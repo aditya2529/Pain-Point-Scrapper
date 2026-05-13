@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dashboard · PainSignal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg-2: #12121a;
+    --text: #f4f4f5;
+    --text-dim: #a1a1aa;
+    --border: rgba(255,255,255,0.08);
+  }
+  * { -webkit-font-smoothing: antialiased; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  /* Background gradient */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; height: 600px;
+    background: radial-gradient(circle at 20% 20%, rgba(167,139,250,0.15), transparent 50%),
+                radial-gradient(circle at 80% 30%, rgba(56,189,248,0.12), transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glass {
+    background: rgba(255,255,255,0.025);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+  }
+  .glass:hover { background: rgba(255,255,255,0.04); border-color: rgba(167,139,250,0.3); }
+
+  .grad-text {
+    background: linear-gradient(135deg, #a78bfa 0%, #38bdf8 50%, #f472b6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+    transition: all 0.3s ease;
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(167,139,250,0.4); }
+  .btn-ghost {
+    border: 1px solid rgba(255,255,255,0.15);
+    transition: all 0.2s ease;
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.05); }
+
+  .score-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; }
+  .score-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ef4444 0%, #f59e0b 30%, #10b981 60%, #38bdf8 100%);
+    border-radius: 999px;
+  }
+
+  .tag {
+    background: rgba(167,139,250,0.1);
+    border: 1px solid rgba(167,139,250,0.2);
+    color: #c4b5fd;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+  }
+  .tag-red { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.25); color: #fca5a5; }
+  .tag-green { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.25); color: #6ee7b7; }
+  .tag-blue { background: rgba(56,189,248,0.1); border-color: rgba(56,189,248,0.25); color: #7dd3fc; }
+  .tag-pink { background: rgba(244,114,182,0.1); border-color: rgba(244,114,182,0.25); color: #f9a8d4; }
+  .tag-amber { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.25); color: #fcd34d; }
+
+  .lock-overlay {
+    position: relative;
+    overflow: hidden;
+  }
+  .lock-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(10,10,15,0.95) 70%);
+  }
+</style>
+</head>
+<body class="min-h-screen relative">
+
+<!-- =============== TOP NAV =============== -->
+<nav class="relative z-50 px-6 py-4 border-b border-white/5 flex items-center justify-between bg-black/30 backdrop-blur-xl sticky top-0">
+  <div class="flex items-center gap-3">
+    <a href="/index.html" class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-cyan-400 flex items-center justify-center font-black text-black text-sm">P</div>
+      <span class="text-lg font-bold tracking-tight">PainSignal</span>
+    </a>
+    <span class="mono text-[10px] px-2 py-0.5 rounded-md bg-white/5 text-zinc-400">Dashboard</span>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <span id="user-plan-badge" class="hidden md:inline mono text-xs px-3 py-1 rounded-full glass">FREE</span>
+    <span id="user-email" class="hidden md:inline text-sm text-zinc-400">—</span>
+    <button onclick="logout()" class="btn-ghost px-3 py-1.5 rounded-lg text-sm">Log out</button>
+  </div>
+</nav>
+
+<!-- =============== MAIN =============== -->
+<main class="relative z-10 max-w-7xl mx-auto px-6 py-10">
+
+  <!-- Welcome / Stats Header -->
+  <div class="mb-10">
+    <h1 class="text-4xl md:text-5xl font-black tracking-tight mb-3">
+      Welcome back, <span id="welcome-email" class="grad-text">founder</span>
+    </h1>
+    <p class="text-zinc-400">Here are the highest-opportunity pain points we've detected this week.</p>
+  </div>
+
+  <!-- Stats row -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+    <div class="glass p-5">
+      <div class="text-xs mono text-zinc-500 mb-2">PAIN POINTS</div>
+      <div class="text-3xl font-black" id="stat-total">—</div>
+    </div>
+    <div class="glass p-5">
+      <div class="text-xs mono text-zinc-500 mb-2">TOP SCORE</div>
+      <div class="text-3xl font-black grad-text" id="stat-top">—</div>
+    </div>
+    <div class="glass p-5">
+      <div class="text-xs mono text-zinc-500 mb-2">AVG SCORE</div>
+      <div class="text-3xl font-black" id="stat-avg">—</div>
+    </div>
+    <div class="glass p-5">
+      <div class="text-xs mono text-zinc-500 mb-2">SOURCES</div>
+      <div class="text-3xl font-black" id="stat-sources">—</div>
+    </div>
+  </div>
+
+  <!-- Upgrade banner (free tier) -->
+  <div id="upgrade-banner" class="hidden glass p-6 mb-8" style="background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(56,189,248,0.05)); border-color: rgba(167,139,250,0.3);">
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div>
+        <h3 class="text-lg font-bold mb-1">🔒 <span id="locked-count">0</span> more pain points are locked</h3>
+        <p class="text-sm text-zinc-400">Upgrade to Builder ($99/mo) to unlock all opportunities + daily updates + competitor analysis.</p>
+      </div>
+      <button onclick="upgradeTo('builder')" class="btn-primary px-6 py-3 rounded-xl font-semibold whitespace-nowrap">
+        Upgrade to Builder →
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="flex flex-wrap items-center gap-2 mb-6">
+    <span class="text-sm text-zinc-500 mr-2">Filter:</span>
+    <button onclick="filterByCategory('all')" class="filter-btn px-3 py-1.5 rounded-lg text-xs mono bg-violet-500/20 border border-violet-500/40 text-violet-200" data-filter="all">All</button>
+    <button onclick="filterByCategory('workflow')" class="filter-btn px-3 py-1.5 rounded-lg text-xs mono bg-white/5 border border-white/10 text-zinc-400" data-filter="workflow">Workflow</button>
+    <button onclick="filterByCategory('tooling')" class="filter-btn px-3 py-1.5 rounded-lg text-xs mono bg-white/5 border border-white/10 text-zinc-400" data-filter="tooling">Tooling</button>
+    <button onclick="filterByCategory('pricing')" class="filter-btn px-3 py-1.5 rounded-lg text-xs mono bg-white/5 border border-white/10 text-zinc-400" data-filter="pricing">Pricing</button>
+    <button onclick="filterByCategory('missing_feature')" class="filter-btn px-3 py-1.5 rounded-lg text-xs mono bg-white/5 border border-white/10 text-zinc-400" data-filter="missing_feature">Missing Features</button>
+    <button onclick="filterByCategory('support')" class="filter-btn px-3 py-1.5 rounded-lg text-xs mono bg-white/5 border border-white/10 text-zinc-400" data-filter="support">Support</button>
+    <button onclick="filterByCategory('onboarding')" class="filter-btn px-3 py-1.5 rounded-lg text-xs mono bg-white/5 border border-white/10 text-zinc-400" data-filter="onboarding">Onboarding</button>
+    <button onclick="filterByCategory('process')" class="filter-btn px-3 py-1.5 rounded-lg text-xs mono bg-white/5 border border-white/10 text-zinc-400" data-filter="process">Process</button>
+  </div>
+
+  <!-- Pain Points Grid -->
+  <div id="pain-points-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Cards rendered by JS -->
+    <div class="glass p-8 text-center text-zinc-500 col-span-full">Loading pain points...</div>
+  </div>
+
+  <!-- Locked teaser cards (for free tier) -->
+  <div id="locked-teaser" class="hidden mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+  </div>
+
+</main>
+
+<!-- =============== UPGRADE MODAL =============== -->
+<div id="upgrade-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-6">
+  <div class="glass max-w-md w-full p-8" style="background: rgba(20,20,30,0.95);">
+    <h3 class="text-2xl font-bold mb-2">Upgrade to <span id="modal-plan" class="grad-text">Builder</span></h3>
+    <p class="text-sm text-zinc-400 mb-6">Get instant access to all <span id="modal-locked-count">83</span> pain points plus daily updates.</p>
+    <div class="space-y-3 mb-8">
+      <div class="flex items-center gap-2 text-sm"><span class="text-violet-400">✓</span> All 86+ pain points unlocked</div>
+      <div class="flex items-center gap-2 text-sm"><span class="text-violet-400">✓</span> Daily intelligence updates</div>
+      <div class="flex items-center gap-2 text-sm"><span class="text-violet-400">✓</span> Competitor gap analysis</div>
+      <div class="flex items-center gap-2 text-sm"><span class="text-violet-400">✓</span> Slack/email spike alerts</div>
+      <div class="flex items-center gap-2 text-sm"><span class="text-violet-400">✓</span> CSV export</div>
+    </div>
+    <div class="flex gap-3">
+      <button onclick="closeUpgradeModal()" class="btn-ghost px-4 py-3 rounded-xl flex-1">Cancel</button>
+      <button onclick="confirmCheckout()" id="confirm-upgrade-btn" class="btn-primary px-4 py-3 rounded-xl flex-1 font-semibold">Continue to checkout</button>
+    </div>
+    <p class="text-xs text-zinc-500 mt-4 text-center">Secure payment via Stripe · Cancel anytime</p>
+  </div>
+</div>
+
+<script>
+const API = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+  ? "http://localhost:8000"
+  : "https://painsignal-api.onrender.com";  // <-- UPDATE THIS after deploying to Render
+let allPoints = [];
+let currentFilter = "all";
+let userPlan = "free";
+let selectedPlan = "builder";
+
+// ── Auth gate ────────────────────────────────────────────────
+const token = localStorage.getItem("token");
+if (!token) {
+  window.location.href = "/login.html";
+}
+
+// ── Boot ─────────────────────────────────────────────────────
+async function init() {
+  try {
+    const me = await api("/api/me");
+    document.getElementById("user-email").textContent = me.email;
+    document.getElementById("welcome-email").textContent = me.email.split("@")[0];
+    document.getElementById("user-plan-badge").textContent = me.plan.toUpperCase();
+    userPlan = me.plan;
+
+    if (me.plan === "free" || me.plan === "starter") {
+      document.getElementById("user-plan-badge").classList.add("text-violet-300");
+    } else {
+      document.getElementById("user-plan-badge").classList.add("text-emerald-300");
+      document.getElementById("user-plan-badge").style.background = "rgba(16,185,129,0.1)";
+      document.getElementById("user-plan-badge").style.borderColor = "rgba(16,185,129,0.3)";
+    }
+  } catch (e) {
+    console.error("Auth failed:", e);
+    localStorage.removeItem("token");
+    window.location.href = "/login.html";
+    return;
+  }
+
+  await loadStats();
+  await loadPainPoints();
+}
+
+async function loadStats() {
+  try {
+    const stats = await api("/api/stats", false);
+    document.getElementById("stat-total").textContent = stats.total_pain_points;
+    document.getElementById("stat-top").textContent = stats.top_score;
+    document.getElementById("stat-avg").textContent = stats.avg_score;
+    document.getElementById("stat-sources").textContent = stats.subreddits.length;
+  } catch (e) { console.error(e); }
+}
+
+async function loadPainPoints() {
+  try {
+    const data = await api("/api/pain-points");
+    allPoints = data.pain_points;
+
+    // Show upgrade banner if free/starter and there are locked points
+    if (data.locked > 0) {
+      document.getElementById("locked-count").textContent = data.locked;
+      document.getElementById("upgrade-banner").classList.remove("hidden");
+      renderLockedTeaser(data.locked);
+    }
+
+    renderPainPoints(allPoints);
+  } catch (e) {
+    console.error(e);
+    document.getElementById("pain-points-grid").innerHTML =
+      `<div class="glass p-8 text-center text-red-400 col-span-full">Failed to load pain points: ${e.message}</div>`;
+  }
+}
+
+function renderPainPoints(points) {
+  const filtered = currentFilter === "all"
+    ? points
+    : points.filter(p => p.pain_category === currentFilter);
+
+  if (filtered.length === 0) {
+    document.getElementById("pain-points-grid").innerHTML =
+      `<div class="glass p-8 text-center text-zinc-500 col-span-full">No pain points match this filter.</div>`;
+    return;
+  }
+
+  const html = filtered.map((p, i) => {
+    const wtpTag = {
+      "very_high": '<span class="tag tag-green">WTP: Very High 💰💰💰</span>',
+      "high": '<span class="tag tag-green">WTP: High 💰💰</span>',
+      "medium": '<span class="tag tag-amber">WTP: Medium 💰</span>',
+      "low": '<span class="tag">WTP: Low</span>'
+    }[p.willingness_to_pay_signal] || '<span class="tag">WTP: —</span>';
+
+    const scorePercent = Math.min((p.opportunity_score / 10) * 100, 100);
+
+    return `
+    <div class="glass p-6 hover:scale-[1.01] transition-transform">
+      <div class="flex items-center justify-between mb-3">
+        <span class="tag tag-pink">#${i + 1} · ${p.pain_category.replace('_', ' ')}</span>
+        <span class="mono text-xs text-zinc-500">r/${p.subreddit}</span>
+      </div>
+
+      <h3 class="text-lg font-bold mb-2 leading-snug">${escapeHtml(p.pain_point_summary)}</h3>
+      <p class="text-sm text-zinc-500 italic mb-4">"${escapeHtml(p.key_quote)}"</p>
+
+      <div class="space-y-2 mb-4">
+        <div class="flex justify-between text-xs">
+          <span class="text-zinc-500">Opportunity Score</span>
+          <span class="mono text-white font-bold">${p.opportunity_score}/10</span>
+        </div>
+        <div class="score-bar"><div class="score-bar-fill" style="width: ${scorePercent}%"></div></div>
+      </div>
+
+      <div class="flex flex-wrap gap-2 mb-4">
+        <span class="tag tag-red">Intensity ${p.emotional_intensity}/10</span>
+        <span class="tag tag-blue">Urgency ${p.urgency}/10</span>
+        ${wtpTag}
+      </div>
+
+      <details class="cursor-pointer">
+        <summary class="text-xs mono text-violet-300 hover:text-violet-200">▸ Show product opportunity + Reddit link</summary>
+        <div class="mt-3 pt-3 border-t border-white/5">
+          <p class="text-xs mono text-zinc-500 mb-2">PRODUCT IDEA</p>
+          <p class="text-sm text-zinc-200 mb-3">${escapeHtml(p.product_opportunity)}</p>
+          <p class="text-xs mono text-zinc-500 mb-1">MONETIZATION</p>
+          <p class="text-sm text-zinc-300 mb-3">${escapeHtml(p.monetization_angle)}</p>
+          <p class="text-xs mono text-zinc-500 mb-1">TARGET USER</p>
+          <p class="text-sm text-zinc-300 mb-3">${escapeHtml(p.target_user)}</p>
+          <a href="${p.url}" target="_blank" class="text-xs text-violet-300 hover:text-violet-200 mono">→ View original thread on Reddit</a>
+        </div>
+      </details>
+    </div>`;
+  }).join("");
+
+  document.getElementById("pain-points-grid").innerHTML = html;
+}
+
+function renderLockedTeaser(count) {
+  const teaserHTML = Array.from({ length: Math.min(3, count) }).map(() => `
+    <div class="glass p-6 lock-overlay opacity-60">
+      <div class="flex items-center justify-between mb-3">
+        <span class="tag">🔒 Locked</span>
+        <span class="mono text-xs text-zinc-700">r/██████</span>
+      </div>
+      <h3 class="text-lg font-bold mb-2 blur-sm select-none">A massive pain point in the B2B SaaS space</h3>
+      <div class="score-bar mb-3"><div class="score-bar-fill" style="width: 78%"></div></div>
+      <p class="text-xs text-zinc-500 mt-2">Upgrade to unlock</p>
+    </div>
+  `).join("");
+
+  document.getElementById("locked-teaser").innerHTML = teaserHTML;
+  document.getElementById("locked-teaser").classList.remove("hidden");
+}
+
+function filterByCategory(cat) {
+  currentFilter = cat;
+  document.querySelectorAll(".filter-btn").forEach(b => {
+    if (b.dataset.filter === cat) {
+      b.classList.add("bg-violet-500/20", "border-violet-500/40", "text-violet-200");
+      b.classList.remove("bg-white/5", "border-white/10", "text-zinc-400");
+    } else {
+      b.classList.remove("bg-violet-500/20", "border-violet-500/40", "text-violet-200");
+      b.classList.add("bg-white/5", "border-white/10", "text-zinc-400");
+    }
+  });
+  renderPainPoints(allPoints);
+}
+
+// ── Upgrade flow ──────────────────────────────────────────────
+function upgradeTo(plan) {
+  selectedPlan = plan;
+  document.getElementById("modal-plan").textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
+  document.getElementById("upgrade-modal").classList.remove("hidden");
+}
+
+function closeUpgradeModal() {
+  document.getElementById("upgrade-modal").classList.add("hidden");
+}
+
+async function confirmCheckout() {
+  const btn = document.getElementById("confirm-upgrade-btn");
+  btn.textContent = "Loading...";
+  btn.disabled = true;
+
+  try {
+    // First try real Stripe
+    let res;
+    try {
+      res = await api("/api/checkout", true, { method: "POST", body: { plan: selectedPlan } });
+    } catch (e) {
+      // Fall back to mock if Stripe not configured
+      if (e.message.includes("Stripe") || e.message.includes("500")) {
+        res = await api("/api/mock-upgrade", true, { method: "POST", body: { plan: selectedPlan } });
+        alert(`✅ Upgraded to ${selectedPlan} (mock mode). Configure STRIPE_SECRET_KEY in .env for real payments.`);
+        window.location.reload();
+        return;
+      }
+      throw e;
+    }
+
+    if (res.url) {
+      // Redirect to Stripe Checkout
+      if (res.mock) {
+        // Mock checkout — just upgrade directly
+        await api("/api/mock-upgrade", true, { method: "POST", body: { plan: selectedPlan } });
+        alert(`✅ Upgraded to ${selectedPlan} (mock mode).`);
+        window.location.reload();
+      } else {
+        window.location.href = res.url;
+      }
+    }
+  } catch (e) {
+    alert("Checkout failed: " + e.message);
+    btn.textContent = "Continue to checkout";
+    btn.disabled = false;
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+function logout() {
+  localStorage.removeItem("token");
+  window.location.href = "/index.html";
+}
+
+async function api(path, requireAuth = true, opts = {}) {
+  const headers = { "Content-Type": "application/json" };
+  if (requireAuth && token) headers["Authorization"] = `Bearer ${token}`;
+
+  const res = await fetch(API + path, {
+    method: opts.method || "GET",
+    headers,
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+  return data;
+}
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// ── Handle payment success redirect ───────────────────────────
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get("payment") === "success") {
+  setTimeout(() => alert("🎉 Welcome to your upgraded plan! All pain points are now unlocked."), 500);
+}
+
+init();
+</script>
+
+</body>
+</html>
