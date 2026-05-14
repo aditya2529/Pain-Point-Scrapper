@@ -18,17 +18,28 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) PainPointResearcher/1.0"
 }
 
-# Target subreddits
+# Target subreddits — Global + India focused
 SUBREDDITS = [
+    # Global founder/SaaS communities
     "SaaS",
     "startups",
     "Entrepreneur",
     "indiehackers",
-    "webdev",
-    "smallbusiness",
     "ProductManagement",
-    "digitalnomad",
-    "passive_income"
+
+    # Indian-focused communities
+    "india",
+    "IndianStartups",
+    "developersIndia",
+    "IndiaInvestments",
+    "IndianStreetBets",
+    "bangalore",
+    "mumbai",
+    "delhi",
+    "AskIndia",
+    "personalfinanceindia",
+    "indianbusiness",
+    "freelanceindia"
 ]
 
 # Pain signal keywords

@@ -11,10 +11,10 @@ venv/
 .venv/
 *.egg-info/
 
-# Data files (regenerated)
+# Data files
 raw_pain_points.csv
-analyzed_pain_points.csv
 pain_point_report_*.txt
+# NOTE: analyzed_pain_points.csv IS committed — it's the data the backend serves
 
 # OS
 .DS_Store
