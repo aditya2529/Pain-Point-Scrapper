@@ -47,17 +47,8 @@ def load_pain_points():
 
 
 def get_pain_points_for_plan(plan: str = "free"):
-    """Return pain points filtered by user's plan."""
-    all_points = load_pain_points()
-
-    if plan == "free":
-        return all_points[:3]   # First 3 only
-    elif plan == "starter":
-        return all_points[:20]  # Top 20
-    elif plan in ("builder", "agency"):
-        return all_points        # Everything
-    else:
-        return all_points[:3]
+    """Return all pain points — tool is now 100% free."""
+    return load_pain_points()
 
 
 def get_stats():

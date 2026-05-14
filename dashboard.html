@@ -143,18 +143,6 @@
     </div>
   </div>
 
-  <!-- Upgrade banner (free tier) -->
-  <div id="upgrade-banner" class="hidden glass p-6 mb-8" style="background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(56,189,248,0.05)); border-color: rgba(167,139,250,0.3);">
-    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-      <div>
-        <h3 class="text-lg font-bold mb-1">🔒 <span id="locked-count">0</span> more pain points are locked</h3>
-        <p class="text-sm text-zinc-400">Upgrade to Builder ($99/mo) to unlock all opportunities + daily updates + competitor analysis.</p>
-      </div>
-      <button onclick="upgradeTo('builder')" class="btn-primary px-6 py-3 rounded-xl font-semibold whitespace-nowrap">
-        Upgrade to Builder →
-      </button>
-    </div>
-  </div>
 
   <!-- Filters -->
   <div class="flex flex-wrap items-center gap-2 mb-6">
@@ -175,31 +163,8 @@
     <div class="glass p-8 text-center text-zinc-500 col-span-full">Loading pain points...</div>
   </div>
 
-  <!-- Locked teaser cards (for free tier) -->
-  <div id="locked-teaser" class="hidden mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-  </div>
-
 </main>
 
-<!-- =============== UPGRADE MODAL =============== -->
-<div id="upgrade-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-6">
-  <div class="glass max-w-md w-full p-8" style="background: rgba(20,20,30,0.95);">
-    <h3 class="text-2xl font-bold mb-2">Upgrade to <span id="modal-plan" class="grad-text">Builder</span></h3>
-    <p class="text-sm text-zinc-400 mb-6">Get instant access to all <span id="modal-locked-count">83</span> pain points plus daily updates.</p>
-    <div class="space-y-3 mb-8">
-      <div class="flex items-center gap-2 text-sm"><span class="text-violet-400">✓</span> All 86+ pain points unlocked</div>
-      <div class="flex items-center gap-2 text-sm"><span class="text-violet-400">✓</span> Daily intelligence updates</div>
-      <div class="flex items-center gap-2 text-sm"><span class="text-violet-400">✓</span> Competitor gap analysis</div>
-      <div class="flex items-center gap-2 text-sm"><span class="text-violet-400">✓</span> Slack/email spike alerts</div>
-      <div class="flex items-center gap-2 text-sm"><span class="text-violet-400">✓</span> CSV export</div>
-    </div>
-    <div class="flex gap-3">
-      <button onclick="closeUpgradeModal()" class="btn-ghost px-4 py-3 rounded-xl flex-1">Cancel</button>
-      <button onclick="confirmCheckout()" id="confirm-upgrade-btn" class="btn-primary px-4 py-3 rounded-xl flex-1 font-semibold">Continue to checkout</button>
-    </div>
-    <p class="text-xs text-zinc-500 mt-4 text-center">Secure payment via Stripe · Cancel anytime</p>
-  </div>
-</div>
 
 <script>
 const API = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
@@ -207,8 +172,6 @@ const API = window.location.hostname === "localhost" || window.location.hostname
   : "https://painsignal-api.onrender.com";  // <-- UPDATE THIS after deploying to Render
 let allPoints = [];
 let currentFilter = "all";
-let userPlan = "free";
-let selectedPlan = "builder";
 
 // ── Auth gate ────────────────────────────────────────────────
 const token = localStorage.getItem("token");
@@ -222,16 +185,10 @@ async function init() {
     const me = await api("/api/me");
     document.getElementById("user-email").textContent = me.email;
     document.getElementById("welcome-email").textContent = me.email.split("@")[0];
-    document.getElementById("user-plan-badge").textContent = me.plan.toUpperCase();
-    userPlan = me.plan;
-
-    if (me.plan === "free" || me.plan === "starter") {
-      document.getElementById("user-plan-badge").classList.add("text-violet-300");
-    } else {
-      document.getElementById("user-plan-badge").classList.add("text-emerald-300");
-      document.getElementById("user-plan-badge").style.background = "rgba(16,185,129,0.1)";
-      document.getElementById("user-plan-badge").style.borderColor = "rgba(16,185,129,0.3)";
-    }
+    document.getElementById("user-plan-badge").textContent = "MEMBER";
+    document.getElementById("user-plan-badge").classList.add("text-emerald-300");
+    document.getElementById("user-plan-badge").style.background = "rgba(16,185,129,0.1)";
+    document.getElementById("user-plan-badge").style.borderColor = "rgba(16,185,129,0.3)";
   } catch (e) {
     console.error("Auth failed:", e);
     localStorage.removeItem("token");
@@ -257,14 +214,6 @@ async function loadPainPoints() {
   try {
     const data = await api("/api/pain-points");
     allPoints = data.pain_points;
-
-    // Show upgrade banner if free/starter and there are locked points
-    if (data.locked > 0) {
-      document.getElementById("locked-count").textContent = data.locked;
-      document.getElementById("upgrade-banner").classList.remove("hidden");
-      renderLockedTeaser(data.locked);
-    }
-
     renderPainPoints(allPoints);
   } catch (e) {
     console.error(e);
@@ -336,23 +285,6 @@ function renderPainPoints(points) {
   document.getElementById("pain-points-grid").innerHTML = html;
 }
 
-function renderLockedTeaser(count) {
-  const teaserHTML = Array.from({ length: Math.min(3, count) }).map(() => `
-    <div class="glass p-6 lock-overlay opacity-60">
-      <div class="flex items-center justify-between mb-3">
-        <span class="tag">🔒 Locked</span>
-        <span class="mono text-xs text-zinc-700">r/██████</span>
-      </div>
-      <h3 class="text-lg font-bold mb-2 blur-sm select-none">A massive pain point in the B2B SaaS space</h3>
-      <div class="score-bar mb-3"><div class="score-bar-fill" style="width: 78%"></div></div>
-      <p class="text-xs text-zinc-500 mt-2">Upgrade to unlock</p>
-    </div>
-  `).join("");
-
-  document.getElementById("locked-teaser").innerHTML = teaserHTML;
-  document.getElementById("locked-teaser").classList.remove("hidden");
-}
-
 function filterByCategory(cat) {
   currentFilter = cat;
   document.querySelectorAll(".filter-btn").forEach(b => {
@@ -365,56 +297,6 @@ function filterByCategory(cat) {
     }
   });
   renderPainPoints(allPoints);
-}
-
-// ── Upgrade flow ──────────────────────────────────────────────
-function upgradeTo(plan) {
-  selectedPlan = plan;
-  document.getElementById("modal-plan").textContent = plan.charAt(0).toUpperCase() + plan.slice(1);
-  document.getElementById("upgrade-modal").classList.remove("hidden");
-}
-
-function closeUpgradeModal() {
-  document.getElementById("upgrade-modal").classList.add("hidden");
-}
-
-async function confirmCheckout() {
-  const btn = document.getElementById("confirm-upgrade-btn");
-  btn.textContent = "Loading...";
-  btn.disabled = true;
-
-  try {
-    // First try real Stripe
-    let res;
-    try {
-      res = await api("/api/checkout", true, { method: "POST", body: { plan: selectedPlan } });
-    } catch (e) {
-      // Fall back to mock if Stripe not configured
-      if (e.message.includes("Stripe") || e.message.includes("500")) {
-        res = await api("/api/mock-upgrade", true, { method: "POST", body: { plan: selectedPlan } });
-        alert(`✅ Upgraded to ${selectedPlan} (mock mode). Configure STRIPE_SECRET_KEY in .env for real payments.`);
-        window.location.reload();
-        return;
-      }
-      throw e;
-    }
-
-    if (res.url) {
-      // Redirect to Stripe Checkout
-      if (res.mock) {
-        // Mock checkout — just upgrade directly
-        await api("/api/mock-upgrade", true, { method: "POST", body: { plan: selectedPlan } });
-        alert(`✅ Upgraded to ${selectedPlan} (mock mode).`);
-        window.location.reload();
-      } else {
-        window.location.href = res.url;
-      }
-    }
-  } catch (e) {
-    alert("Checkout failed: " + e.message);
-    btn.textContent = "Continue to checkout";
-    btn.disabled = false;
-  }
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -445,12 +327,6 @@ function escapeHtml(str) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
-}
-
-// ── Handle payment success redirect ───────────────────────────
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get("payment") === "success") {
-  setTimeout(() => alert("🎉 Welcome to your upgraded plan! All pain points are now unlocked."), 500);
 }
 
 init();
