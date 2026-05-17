@@ -1,7 +1,86 @@
 # Parked Ideas — Come Back Later
 
 Ideas discovered via the pain-point scraper that are exciting but
-need to wait until GSTFlow is profitable.
+need to wait until **AdminGuard** (current active project) is profitable.
+
+> **Active focus:** AdminGuard — AI fraud detection for Indian IT services
+> (TCS / Infosys / HCL / Wipro / Iris Software).
+> First customer target: Iris Software (my own company).
+
+---
+
+## 🎯 PIPELINE — Next 3 Products After AdminGuard
+
+These 3 ideas sell to the SAME buyer cluster (Internal Audit, HR,
+Engineering Directors at Indian IT services giants) — so once
+AdminGuard cracks the door open, these become natural cross-sells.
+
+---
+
+### 🥇 InterviewShield — AI Fake Candidate Detector
+
+**Source:** r/datascience · Score: 7.48 · WTP: High
+**Quote:** *"Hiring has become untenable"*
+
+**Pain:** Hiring managers swamped with AI-faked resumes,
+deepfake video interviews, GPT-coached candidates.
+
+**Product:** AI that flags suspicious resumes + verifies
+interview authenticity in real-time (audio + video + behavioral signals).
+
+**Buyer:** HR / Talent Acquisition Heads at IT services
+**Indian angle:** Resume fraud is endemic at TCS/Infy/HCL.
+TCS alone hires 40k+ people/year.
+**Contract size:** ₹10-50L/year per company.
+
+**When to revive:** After AdminGuard hits ₹50L ARR.
+
+---
+
+### 🥈 AutoDocs — AI Engineering Knowledge Capture
+
+**Source:** r/managers · Score: 7.82 · WTP: High
+**Quote:** *"They say it slows them down"* (devs refusing to document)
+
+**Pain:** Senior devs hoard knowledge in their heads.
+When they quit, ₹crores of tribal knowledge walks out.
+Indian IT services have massive attrition → broken handovers.
+
+**Product:** AI agent that watches Slack/GitHub/Jira/Linear
+→ auto-generates and updates Confluence/Notion docs.
+Manager dashboard shows "knowledge risk per project."
+
+**Buyer:** Engineering Directors / Heads of Eng at IT services
+**Contract size:** ₹20/engineer/month
+→ 1 mid-size firm (500 devs) = ₹12L/year
+→ TCS-scale = ₹15cr+/year
+
+**When to revive:** After AdminGuard validated + cross-sell motion proven.
+
+---
+
+### 🥉 PolicyLens — HR Layoff/Performance Fairness Tool
+
+**Source:** r/Accounting · Score: 7.54 · WTP: High
+**Quote:** *"PE is ruining the culture"*
+
+**Pain:** Mass layoffs at Grant Thornton, Coinbase, etc. with
+unclear criteria → lawsuits, attrition spikes, Glassdoor damage.
+Indian IT firms doing same — politically explosive.
+
+**Product:** AI that scores layoff/promotion decisions for
+fairness + bias + legal risk BEFORE they're enforced.
+Generates audit trail for board / legal team.
+
+**Buyer:** CHRO / Head of HR Compliance / Legal at IT services
+**Contract size:** ₹15-40L/year per company
+**Indian angle:** Layoffs = court cases in India. Tool = insurance.
+
+**When to revive:** When HR-tech becomes the buyer cluster post-AdminGuard.
+
+---
+
+## 🌍 LONG-PARKED — Future Vision Plays
 
 ---
 

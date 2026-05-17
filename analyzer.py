@@ -44,7 +44,7 @@ Return ONLY the JSON. No explanation, no markdown, no code blocks."""
 def analyze_post(row):
     try:
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
             max_tokens=900,
             temperature=0.2,
             messages=[{

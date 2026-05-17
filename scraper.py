@@ -18,28 +18,35 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) PainPointResearcher/1.0"
 }
 
-# Target subreddits — Global + India focused
+# Target subreddits — FINTECH + IT corporate pain
 SUBREDDITS = [
-    # Global founder/SaaS communities
-    "SaaS",
-    "startups",
-    "Entrepreneur",
-    "indiehackers",
-    "ProductManagement",
+    # Fintech-specific
+    "fintech",
+    "Banking",
+    "Bookkeeping",
+    "Accounting",
+    "algotrading",
+    "CryptoCurrency",
+    "FinancialCareers",
+    "personalfinance",
+    "CreditCards",
 
-    # Indian-focused communities
-    "india",
-    "IndianStartups",
-    "developersIndia",
-    "IndiaInvestments",
-    "IndianStreetBets",
-    "bangalore",
-    "mumbai",
-    "delhi",
-    "AskIndia",
-    "personalfinanceindia",
-    "indianbusiness",
-    "freelanceindia"
+    # IT enterprise pain
+    "sysadmin",
+    "devops",
+    "cybersecurity",
+    "ITManagers",
+    "AZURE",
+    "aws",
+    "ExperiencedDevs",
+
+    # Compliance + audit pain (huge fintech overlap)
+    "AuditandTax",
+    "compliance",
+
+    # India fintech + IT
+    "IndianStockMarket",
+    "developersIndia"
 ]
 
 # Pain signal keywords
